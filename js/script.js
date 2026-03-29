@@ -23,9 +23,9 @@ const projects = [
     {
         id: 3,
         title: "Spice Route Restaurant",
-        description: "Restaurant website with online ordering and reservation system. 🚧 Coming Soon",
-        tech: ["React", "Express", "MongoDB"],
-        demoLink: null,
+        description: "A primium, mobile-first restaurant storefront with interactive menus and one tap communication triggers to drive instant reservations",
+        tech: ["React.js", "Morden css3", "Framer Motion","Google map Api"],
+        demoLink: "https://rehanmsvs04-gif.github.io/spice-garden/",
        Image:"images/restaurant.png"
     },
     {
