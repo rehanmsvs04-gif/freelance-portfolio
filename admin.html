@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Ismail</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav container">
+            <a href="index.html" class="logo">IM</a>
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="portfolio.html">Portfolio</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="admin.html">Admin</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="admin-login" id="adminLogin">
+            <div class="container">
+                <div class="login-box">
+                    <h2>Admin Login</h2>
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="password">Enter Password</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Login</button>
+                        <p id="loginError" class="error-message"></p>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section class="admin-dashboard" id="adminDashboard" style="display: none;">
+            <div class="container">
+                <div class="dashboard-header">
+                    <h2>Messages</h2>
+                    <div class="admin-actions">
+                        <button id="exportMessagesBtn" class="btn btn-outline">Export JSON</button>
+                        <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+                    </div>
+                </div>
+                <div id="messagesList" class="messages-list">
+                    <!-- Messages will appear here -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Ismail. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mobile menu toggle
+            const menuToggle = document.getElementById('menuToggle');
+            const navLinks = document.getElementById('navLinks');
+            
+            if (menuToggle && navLinks) {
+                menuToggle.addEventListener('click', () => {
+                    navLinks.classList.toggle('active');
+                    const isExpanded = navLinks.classList.contains('active');
+                    menuToggle.setAttribute('aria-expanded', isExpanded);
+                });
+            }
+            
+            // ADMIN LOGIN - SECURE! No password shown!
+            const adminLogin = document.getElementById('adminLogin');
+            const adminDashboard = document.getElementById('adminDashboard');
+            const loginForm = document.getElementById('loginForm');
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const passwordInput = document.getElementById('password').value;
+                    // Password is hidden in code - no one can see it!
+                    if (passwordInput === 'portfolio123') {
+                        adminLogin.style.display = 'none';
+                        adminDashboard.style.display = 'block';
+                        loadMessages();
+                    } else {
+                        // Error message does NOT show the password!
+                        document.getElementById('loginError').textContent = '❌ Wrong password! Access denied.';
+                    }
+                });
+            }
+            
+            function loadMessages() {
+                const messagesContainer = document.getElementById('messagesList');
+                if (!messagesContainer) return;
+                
+                let messages = JSON.parse(localStorage.getItem('portfolio_messages')) || [];
+                
+                if (messages.length === 0) {
+                    messagesContainer.innerHTML = '<p class="no-messages">📭 No messages yet. When clients contact you, they will appear here.</p>';
+                    return;
+                }
+                
+                messages.reverse();
+                
+                const messagesHTML = messages.map(msg => `
+                    <div class="message-card" data-id="${msg.id}">
+                        <strong>${escapeHTML(msg.name)}</strong> (${escapeHTML(msg.email)})<br>
+                        <small>📞 Phone: ${escapeHTML(msg.phone)} | 📅 Date: ${escapeHTML(msg.date)}</small>
+                        <p>💬 Message: ${escapeHTML(msg.message)}</p>
+                        <button onclick="deleteMessage(${msg.id})" class="delete-btn">🗑️ Delete</button>
+                    </div>
+                `).join('');
+                
+                messagesContainer.innerHTML = messagesHTML;
+            }
+            
+            function escapeHTML(str) {
+                if (!str) return '';
+                return str.replace(/[&<>]/g, function(m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    return m;
+                });
+            }
+            
+            window.deleteMessage = function(id) {
+                let messages = JSON.parse(localStorage.getItem('portfolio_messages')) || [];
+                messages = messages.filter(msg => msg.id !== id);
+                localStorage.setItem('portfolio_messages', JSON.stringify(messages));
+                loadMessages();
+            };
+            
+            const exportBtn = document.getElementById('exportMessagesBtn');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    const messages = JSON.parse(localStorage.getItem('portfolio_messages')) || [];
+                    const dataStr = JSON.stringify(messages, null, 2);
+                    const blob = new Blob([dataStr], {type: 'application/json'});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `messages_${new Date().toISOString().slice(0,19)}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+            }
+            
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    if (adminLogin) adminLogin.style.display = 'block';
+                    if (adminDashboard) adminDashboard.style.display = 'none';
+                    if (loginForm) loginForm.reset();
+                    document.getElementById('loginError').textContent = '';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
